@@ -3,7 +3,7 @@ Yourls-Memcached
 
 Memcached plugin for YOURLS
 
-*Use only in a multi web servers, otherwise APC cache will be faster.*
+*Use only in a multiple webservers environment, otherwise APC cache will be faster.*
 
 This plugin is based on "Yourls-APC-Cache" by Ian Barber (https://github.com/ianbarber)
 
