@@ -14,33 +14,20 @@ if(!class_exists('Memcached')) {
 
 $memcached = new Memcached();
 
-if(!defined('MEMCACHED_IP')) { 
-	define("MEMCACHED_IP", localhost);
-}
-
-if(!defined('MEMCACHED_PORT')) { 
-	define("MEMCACHED_PORT", 11211);
-}
+if(!defined('MEMCACHED_IP')) { define("MEMCACHED_IP", '127.0.0.1'); }
+if(!defined('MEMCACHED_PORT')) { define("MEMCACHED_PORT", '11211'); }
 
 if(!$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT)) {
 	yourls_die( 'Unable to connect to Memcached server ('. MEMCACHED_IP . ':' . MEMCACHED_PORT .' )' );
 }
 
-if(!defined('MEMCACHED_WRITE_CACHE_TIMEOUT')) {
-	define('MEMCACHED_WRITE_CACHE_TIMEOUT', 120);
-}
-
-if(!defined('MEMCACHED_READ_CACHE_TIMEOUT')) {
-	define('MEMCACHED_READ_CACHE_TIMEOUT', 360);
-}
-
+if(!defined('MEMCACHED_WRITE_CACHE_TIMEOUT')) { define('MEMCACHED_WRITE_CACHE_TIMEOUT', 120); }
+if(!defined('MEMCACHED_READ_CACHE_TIMEOUT')) { define('MEMCACHED_READ_CACHE_TIMEOUT', 360); }
 define('MEMCACHED_CACHE_LOG_INDEX', 'cachelogindex');
 define('MEMCACHED_CACHE_LOG_TIMER', 'cachelogtimer');
 define('MEMCACHED_CACHE_ALL_OPTIONS', 'cache-get_all_options');
 
-if(!defined('MEMCACHED_CACHE_LONG_TIMEOUT')) {
-	define('MEMCACHED_CACHE_LONG_TIMEOUT', 86400);
-}
+if(!defined('MEMCACHED_CACHE_LONG_TIMEOUT')) {define('MEMCACHED_CACHE_LONG_TIMEOUT', 86400); }
 
 yourls_add_action( 'pre_get_keyword', 'memcached_pre_get_keyword' );
 yourls_add_filter( 'get_keyword_infos', 'memcached_get_keyword_infos' );
