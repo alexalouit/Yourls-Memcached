@@ -3,7 +3,7 @@
 Plugin Name: Memcached
 Plugin URI: https://github.com/alexalouit
 Description: Memcached support (Inspired by Ian Barber <ian.barber@gmail.com> "APC Cache plugin")
-Version: 0.1
+Version: 0.2
 Author: Alexandre Alouit <alexandre.alouit@gmail.com>
 Author URI: http://www.alouit-multimedia.com/
 */
