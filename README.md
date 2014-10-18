@@ -26,12 +26,12 @@ Memcached port: 11211
 
 For custom configuration, add in your config.php
 ```
-define("MEMCACHED_IP", '127.0.0.1');
-define("MEMCACHED_PORT", '11211');
+define("MEMCACHED_SALT", ''); // Salt (for multiple instances, must be unique, default is URL)
+define("MEMCACHED_IP", '127.0.0.1'); // Memcached IP
+define("MEMCACHED_PORT", '11211'); // Memcached Port
 ```
 
 TODO
 ------
-Optimize code
 
 Support multiple memcached servers

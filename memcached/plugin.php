@@ -16,6 +16,7 @@ $memcached = new Memcached();
 
 if(!defined('MEMCACHED_IP')) { define("MEMCACHED_IP", '127.0.0.1'); }
 if(!defined('MEMCACHED_PORT')) { define("MEMCACHED_PORT", '11211'); }
+if(!defined('MEMCACHED_SALT')) { define("MEMCACHED_SALT", $_SERVER["HTTP_HOST"]); }
 
 if(!$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT)) {
 	yourls_die( 'Unable to connect to Memcached server ('. MEMCACHED_IP . ':' . MEMCACHED_PORT .' )' );
@@ -27,7 +28,7 @@ define('MEMCACHED_CACHE_LOG_INDEX', 'cachelogindex');
 define('MEMCACHED_CACHE_LOG_TIMER', 'cachelogtimer');
 define('MEMCACHED_CACHE_ALL_OPTIONS', 'cache-get_all_options');
 
-if(!defined('MEMCACHED_CACHE_LONG_TIMEOUT')) {define('MEMCACHED_CACHE_LONG_TIMEOUT', 86400); }
+if(!defined('MEMCACHED_CACHE_LONG_TIMEOUT')) { define('MEMCACHED_CACHE_LONG_TIMEOUT', 86400); }
 
 yourls_add_action( 'pre_get_keyword', 'memcached_pre_get_keyword' );
 yourls_add_filter( 'get_keyword_infos', 'memcached_get_keyword_infos' );
@@ -52,7 +53,7 @@ yourls_add_filter( 'edit_link', 'memcached_cache_edit_link' );
 function memcached_cache_shunt_all_options($false) {
 	global $ydb; 
 	
-	$key = MEMCACHED_CACHE_ALL_OPTIONS;
+	$key = MEMCACHED_SALT . "." . MEMCACHED_CACHE_ALL_OPTIONS;
 	
 	$memcached = new Memcached();
 	$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT); 
@@ -85,7 +86,7 @@ function memcached_cache_get_all_options($option) {
 function memcached_cache_plugin_statechange($plugin) {
 	$memcached = new Memcached();
 	$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT);
-	$memcached->delete(MEMCACHED_CACHE_ALL_OPTIONS);
+	$memcached->delete(MEMCACHED_SALT . "." . MEMCACHED_CACHE_ALL_OPTIONS);
 }
 
 /**
@@ -95,14 +96,14 @@ function memcached_cache_plugin_statechange($plugin) {
  */
 function memcached_pre_get_keyword($args) {
 	global $ydb;
-	$keyword = $args[0];
+	$keyword = MEMCACHED_SALT . "." . $args[0];
 	$use_cache = isset($args[1]) ? $args[1] : true;
 	
 	$memcached = new Memcached();
 	$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT);
 	// Lookup in cache
 	if($use_cache && $memcached->get($keyword)) {
-		$ydb->infos[$keyword] = $memcached->get($keyword); 
+		$ydb->infos[$keyword] = $memcached->get($keyword);
 	}
 }
 
@@ -116,7 +117,7 @@ function memcached_get_keyword_infos($info, $keyword) {
 	// Store in cache
 	$memcached = new Memcached();
 	$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT);
-	$memcached->add($keyword, $info, MEMCACHED_READ_CACHE_TIMEOUT);
+	$memcached->add(MEMCACHED_SALT . "." . $keyword, $info, MEMCACHED_READ_CACHE_TIMEOUT);
 	return $info;
 }
 
@@ -135,6 +136,7 @@ function memcached_cache_edit_link( $return, $url, $keyword, $newkeyword, $title
 	if($return['status'] != 'fail') {
 		$memcached = new Memcached();
 		$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT);
+		$keyword = MEMCACHED_SALT . "." . $keyword;
 		$memcached->delete($keyword);
 	}
 	return $return;
@@ -161,7 +163,7 @@ function memcached_cache_shunt_update_clicks($false, $keyword) {
 	
 	$keyword = yourls_sanitize_string( $keyword );
 	$timer = $keyword . "-=-timer";
-	$key = $keyword . "-=-clicks";
+	$key = MEMCACHED_SALT . "." . $keyword . "-=-clicks";
 	
 	$memcached = new Memcached();
 	$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT);
@@ -218,7 +220,7 @@ function memcached_cache_shunt_log_redirect($false, $keyword) {
 	);
 	
 	// Separated out the calls to make a bit more readable here
-	$key = MEMCACHED_CACHE_LOG_INDEX;
+	$key = MEMCACHED_SALT . "." . MEMCACHED_CACHE_LOG_INDEX;
 	$logindex = 0;
 	$added = false;
 	
@@ -238,7 +240,7 @@ function memcached_cache_shunt_log_redirect($false, $keyword) {
 	// If we've been caching for over a certain amount do write
 	if($memcached->set(MEMCACHED_CACHE_LOG_TIMER, time(), MEMCACHED_WRITE_CACHE_TIMEOUT)) {
 		// We can add, so lets flush the log cache
-		$key = MEMCACHED_CACHE_LOG_INDEX;
+		$key = MEMCACHED_SALT . "." . MEMCACHED_CACHE_LOG_INDEX;
 		$index = $memcached->get($key);
 		$fetched = -1;
 		$loop = true;
@@ -289,7 +291,7 @@ function memcached_cache_shunt_log_redirect($false, $keyword) {
  * @return string
  */
 function memcached_get_logindex($key) {
-	return MEMCACHED_CACHE_LOG_INDEX . "-" . $key;
+	return MEMCACHED_SALT . "." . MEMCACHED_CACHE_LOG_INDEX . "-" . $key;
 }
 
 /**
@@ -300,6 +302,7 @@ function memcached_get_logindex($key) {
  * @return void
  */
 function memcached_cache_key_increment($key) {
+	$key = MEMCACHED_SALT . "." . $key;
 	$memcached = new Memcached();
 	$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT);
 	do {
@@ -315,6 +318,7 @@ function memcached_cache_key_increment($key) {
  * @return old value before the reset
  */
 function memcached_cache_key_zero($key) {
+	$key = MEMCACHED_SALT . "." . $key;
 	$memcached = new Memcached();
 	$memcached->addServer(MEMCACHED_IP, MEMCACHED_PORT);
 	$old = 0;
